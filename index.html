@@ -36,7 +36,7 @@
 
         #final-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 4px solid #ff4d6d; padding: 20px; text-align: center; display: none; z-index: 4000; font-size: 10px; width: 80%; line-height: 1.5; }
         
-        .footer-credit { position: fixed; bottom: 15px; right: 15px; font-size: 10px; color: #ff4d6d; z-index: 5; font-weight: bold; }
+        .footer-credit { position: fixed; bottom: 15px; right: 15px; font-size: 8px; color: #ff4d6d; z-index: 5; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -72,7 +72,8 @@
     const popSound = new Audio('https://pixabay.com/static/audio/2022/03/15/audio_783850666a.mp3');
     const typeSound = new Audio('https://pixabay.com/static/audio/2022/03/10/audio_c33038a201.mp3');
     
-    const phrases = [
+    // Фразы без кода (код добавим динамически)
+    let mainPhrases = [
         "Ты - причина моей самой искренней улыбки",
         "Ты делаешь мою жизнь ярче, чем что либо еще",
         "Твой голос - моя любимая музыка",
@@ -83,9 +84,8 @@
         "всегда беру телефон в руки только с надеждой увидеть Твое сообщение",
         "не знаю что там чувствовал колумб когда открыл америку, но это точно не сравнится с тем что я испытываю когда слушаю Твой голос",
         "невозможно сосчитать сколько раз я улыбаюсь за минуту общения с Тобой",
-        "с Тобой я чувствую себя самим собой",
+        "с трудом я чувствую себя самим собой",
         "Ты как котенок, такая же милая",
-        "код: 050909",
         "Ты как цветочек в стекле, на который хочется постоянно смотреть и бережно хранить."
     ];
 
@@ -95,8 +95,9 @@
     let codeAccepted = false;
     let isTyping = false;
     let step = 0;
+    let codeIndex = -1; // Индекс сердечка, в котором будет код
 
-    function createHeart(index) {
+    function createHeart(index, total) {
         const h = document.createElement('div');
         h.className = 'clickable-heart';
         h.innerText = heartIcons[index % heartIcons.length];
@@ -120,19 +121,41 @@
             if(h.style.opacity === "0") return;
             popSound.currentTime = 0;
             popSound.play().catch(()=>{});
-            document.getElementById('note-text').innerText = phrases[index];
+            
+            caughtCount++;
+            
+            // Логика выдачи текста: если это ПЯТОЕ пойманное сердечко или позже, и код еще не выдан
+            let currentText = "";
+            if (caughtCount >= 6 && codeIndex === -1) {
+                // С шансом 30% или если это последнее сердечко — даем код
+                if (Math.random() > 0.7 || caughtCount === total) {
+                    currentText = "код: 050909";
+                    codeIndex = caughtCount;
+                } else {
+                    currentText = mainPhrases.pop();
+                }
+            } else {
+                currentText = mainPhrases.pop();
+            }
+
+            document.getElementById('note-text').innerText = currentText || "Ты просто чудо!";
             document.getElementById('big-heart-icon').innerText = h.innerText;
             document.getElementById('overlay').style.display = 'flex';
             h.style.opacity = '0';
             h.style.pointerEvents = 'none';
-            caughtCount++;
-            if(caughtCount === phrases.length) isFinished = true;
+            
+            if(caughtCount === total) isFinished = true;
         };
         document.body.appendChild(h);
         move();
     }
 
-    phrases.forEach((_, i) => createHeart(i));
+    // Перемешиваем фразы
+    mainPhrases.sort(() => Math.random() - 0.5);
+    const totalHearts = mainPhrases.length + 1; // +1 для фразы с кодом
+    for(let i=0; i < totalHearts; i++) {
+        createHeart(i, totalHearts);
+    }
 
     document.getElementById('overlay').onclick = function() {
         this.style.display = 'none';
@@ -208,8 +231,7 @@
     }
 
     function showFullPoem() {
-        // Стих появляется СРАЗУ
-        const poem = `Ты греешь мое сердце, будто пришла весна,\nя не верю в свое счастье, ведь счастье - Ты одна.\nТы бываешь в моих мыслях, даже когда спишь,\nи если я не сплю, Ты в голове моей звучишь.\n\nмне бывает часто грустно, и в комнате темно,\nно если рядом Ты, на все проблемы все равно.\nя снова долго думал, с ночи до утра,\nчто мне никто не нужен, нужна лишь Ты одна.\n\nТвой голос лечит душу, в нем столько доброты,\nя в нем хочу остаться, в нем нет той пустоты.\nс Тобой я чувствую себя самим собой.\nТы - лучшее, что жизнь могла мне подарить.`;
+        const poem = `Ты греешь мое сердце, будто пришла весна,\nя не верю в свое счастье, ведь счастье - Ты одна.\nТы бываешь в моих мыслях, даже когда спишь,\nи если я не сплю, Ты в голове моей звучишь.\n\nмне бывает часто грустно, и в комнате темно,\nно если рядом Ты, на все проблемы все равно.\nя снова долго думал, с ночи до утра,\nчто мне никто не нужен, нужна лишь Ты одна.\n\nТвой голос лечит душу, в нем столько доброты,\nя в нем хочу остаться, в нем нет той пустоты.\nс Тобой я научился свой каждый миг ценить.\nТы - лучшее, что жизнь могла мне подарить.`;
         poemContent.innerText = poem;
         document.getElementById('poem-back-btn').style.display = 'inline-block';
     }
