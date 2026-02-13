@@ -19,29 +19,24 @@
 
         #secret-btn { position: absolute; top: 20px; right: 20px; padding: 10px; background: #ffb3d1; border: 3px solid #ff4d6d; font-size: 8px; color: #330000; cursor: pointer; z-index: 1000; }
 
-        .clickable-heart { 
-            position: absolute; 
-            font-size: 40px; 
-            cursor: pointer; 
-            z-index: 10; 
-            transition: opacity 0.8s ease; 
-            user-select: none;
-            line-height: 1;
-        }
+        .clickable-heart { position: absolute; font-size: 40px; cursor: pointer; z-index: 10; transition: opacity 0.8s ease; user-select: none; line-height: 1; }
 
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 230, 240, 0.9); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; padding: 20px; box-sizing: border-box; }
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 230, 240, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; padding: 20px; box-sizing: border-box; }
         .note { background: white; padding: 20px; border: 4px solid #ff4d6d; max-width: 90%; font-size: 10px; line-height: 1.6; color: #330000; text-align: center; margin-top: 20px; }
 
-        #secret-box { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffe6f0; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 5000; padding: 20px; }
-        #secret-box input { padding: 10px; font-family: 'Press Start 2P'; border: 3px solid #ff4d6d; text-align: center; margin-bottom: 15px; width: 70%; outline: none; font-size: 12px; }
+        #secret-box { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffe6f0; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 5000; padding: 20px; box-sizing: border-box; }
+        #secret-box input { padding: 12px; font-family: 'Press Start 2P'; border: 3px solid #ff4d6d; text-align: center; margin-bottom: 15px; width: 80%; outline: none; font-size: 12px; background: white; }
         
-        .back-btn { padding: 8px 15px; font-family: 'Press Start 2P'; font-size: 8px; background: #ffb3d1; border: 3px solid #ff4d6d; cursor: pointer; }
+        #error-msg { color: #ff4d6d; font-size: 7px; margin-bottom: 10px; line-height: 1.4; display: none; max-width: 80%; }
 
-        .poem-text { font-size: 9px; line-height: 1.8; text-align: center; color: #330000; white-space: pre-wrap; }
+        .back-btn { padding: 8px 15px; font-family: 'Press Start 2P'; font-size: 8px; background: #ffb3d1; border: 3px solid #ff4d6d; cursor: pointer; color: #330000; margin: 5px; }
+
+        #poem-area { width: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .poem-text { font-size: 9px; line-height: 1.6; text-align: center; color: #330000; white-space: pre-wrap; width: 95%; max-height: 70vh; overflow-y: auto; margin-bottom: 10px; }
 
         #final-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 4px solid #ff4d6d; padding: 20px; text-align: center; display: none; z-index: 4000; font-size: 10px; width: 80%; line-height: 1.5; }
         
-        .footer-credit { position: fixed; bottom: 10px; right: 10px; font-size: 7px; color: #ff4d6d; z-index: 5; opacity: 0.8; }
+        .footer-credit { position: fixed; bottom: 15px; right: 15px; font-size: 10px; color: #ff4d6d; z-index: 5; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -56,14 +51,15 @@
 
 <div id="secret-box">
     <div id="code-area">
-        <p style="font-size: 9px;">Введи код:</p>
-        <input type="text" id="code-input" maxlength="6">
+        <div id="error-msg">ой, неправильно! попробуй поискать код, может он где-то спрятался?</div>
+        <p style="font-size: 9px; margin-bottom: 15px;">Введи код:</p>
+        <input type="text" id="code-input" placeholder="******" maxlength="6" inputmode="numeric">
         <br>
         <button class="back-btn" onclick="closeSecret()">Назад</button>
     </div>
-    <div id="poem-area" style="display:none;">
+    <div id="poem-area">
         <div class="poem-text" id="poem-content"></div>
-        <button class="back-btn" style="margin-top:20px;" onclick="location.reload()">Назад</button>
+        <button id="poem-back-btn" class="back-btn" style="display:none;" onclick="closeSecret()">Назад</button>
     </div>
 </div>
 
@@ -72,6 +68,10 @@
 <div class="footer-credit">special for София Мяуковна</div>
 
 <script>
+    const popSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+    const typeSound = new Audio('https://assets.mixkit.co/active_storage/sfx/444/444-preview.mp3');
+    typeSound.loop = true;
+
     const phrases = [
         "Ты - причина моей самой искренней улыбки",
         "Ты делаешь мою жизнь ярче, чем что либо еще",
@@ -92,21 +92,23 @@
     const heartIcons = ['💘','💝','💖','💗','💓','🩷'];
     let caughtCount = 0;
     let isFinished = false;
+    let codeAccepted = false;
+    let isTyping = false;
 
     function createHeart(index) {
         const h = document.createElement('div');
         h.className = 'clickable-heart';
         h.innerText = heartIcons[index % heartIcons.length];
-        let x = Math.random() * (window.innerWidth - 50);
-        let y = Math.random() * (window.innerHeight - 50);
+        let x = Math.random() * (window.innerWidth - 60);
+        let y = Math.random() * (window.innerHeight - 60);
         let dx = (Math.random() - 0.5) * 2; 
         let dy = (Math.random() - 0.5) * 2;
 
         function move() {
             if (document.getElementById('overlay').style.display !== 'flex' && document.getElementById('secret-box').style.display !== 'flex') {
                 x += dx; y += dy;
-                if (x <= 0 || x >= window.innerWidth - 50) dx *= -1;
-                if (y <= 0 || y >= window.innerHeight - 50) dy *= -1;
+                if (x <= 0 || x >= window.innerWidth - 60) dx *= -1;
+                if (y <= 0 || y >= window.innerHeight - 60) dy *= -1;
                 h.style.left = x + 'px';
                 h.style.top = y + 'px';
             }
@@ -115,6 +117,8 @@
 
         h.onclick = () => {
             if(h.style.opacity === "0") return;
+            popSound.currentTime = 0;
+            popSound.play().catch(()=>{});
             document.getElementById('note-text').innerText = phrases[index];
             document.getElementById('big-heart-icon').innerText = h.innerText;
             document.getElementById('overlay').style.display = 'flex';
@@ -134,25 +138,91 @@
         if(isFinished) document.getElementById('final-msg').style.display = 'block';
     };
 
-    document.getElementById('secret-btn').onclick = () => { 
-        document.getElementById('secret-box').style.display = 'flex';
-        // Прячем финал, чтобы не мешал вводу кода
+    const secretBtn = document.getElementById('secret-btn');
+    const secretBox = document.getElementById('secret-box');
+    const poemArea = document.getElementById('poem-area');
+    const codeArea = document.getElementById('code-area');
+    const codeInput = document.getElementById('code-input');
+    const errorMsg = document.getElementById('error-msg');
+
+    secretBtn.onclick = () => {
+        secretBox.style.display = 'flex';
         document.getElementById('final-msg').style.display = 'none';
-    };
-
-    function closeSecret() {
-        document.getElementById('secret-box').style.display = 'none';
-        // Если игра была закончена, возвращаем финал
-        if(isFinished) document.getElementById('final-msg').style.display = 'block';
-    }
-
-    document.getElementById('code-input').oninput = (e) => {
-        if(e.target.value === '050909') {
-            document.getElementById('code-area').style.display = 'none';
-            document.getElementById('poem-area').style.display = 'block';
-            document.getElementById('poem-content').innerText = `Ты греешь мое сердце, будто пришла весна,\nя не верю в свое счастье, ведь счастье - Ты одна.\nТы бываешь в моих мыслях, даже когда спишь,\nи если я не сплю, Ты в голове моей звучишь.\n\nмне бывает часто грустно, и в комнате темно,\nно если рядом Ты, на все проблемы все равно.\nя снова долго думал, с ночи до утра,\nчто мне никто не нужен, нужна лишь Ты одна.\n\nТвой голос лечит душу, в нем столько доброты,\nя в нем хочу остаться, в нем нет той пустоты.\nс Тобой я научился свой каждый миг ценить.\nТы - лучшее, что жизнь могла мне подарить.`;
+        if(codeAccepted) {
+            codeArea.style.display = 'none';
+            poemArea.style.display = 'flex';
+            showFullPoem();
         }
     };
+
+    // Слушатель нажатия Enter на клавиатуре
+    codeInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            checkCode();
+        }
+    });
+
+    function checkCode() {
+        if(codeInput.value === '050909') {
+            codeAccepted = true;
+            errorMsg.style.display = 'none';
+            codeArea.style.display = 'none';
+            poemArea.style.display = 'flex';
+            startSequence();
+        } else {
+            errorMsg.style.display = 'block';
+            codeInput.value = '';
+        }
+    }
+
+    function typeWriter(text, element, callback) {
+        let i = 0;
+        element.innerText = "";
+        isTyping = true;
+        typeSound.play().catch(()=>{});
+        
+        function type() {
+            if (i < text.length) {
+                element.innerText += text.charAt(i);
+                i++;
+                setTimeout(type, 60);
+            } else {
+                isTyping = false;
+                typeSound.pause();
+                if(callback) callback();
+            }
+        }
+        type();
+    }
+
+    function startSequence() {
+        typeWriter("Умничка!", document.getElementById('poem-content'), () => {
+            poemArea.onclick = () => {
+                if(isTyping) return;
+                poemArea.onclick = null;
+                typeWriter("Этот стих я написал для Тебя и посвящаю Тебе:", document.getElementById('poem-content'), () => {
+                    setTimeout(() => {
+                        poemArea.onclick = showFullPoem;
+                    }, 500);
+                });
+            };
+        });
+    }
+
+    function showFullPoem() {
+        if(isTyping) return;
+        const poem = `Ты греешь мое сердце, будто пришла весна,\nя не верю в свое счастье, ведь счастье - Ты одна.\nТы бываешь в моих мыслях, даже когда спишь,\nи если я не сплю, Ты в голове моей звучишь.\n\nмне бывает часто грустно, и в комнате темно,\nно если рядом Ты, на все проблемы все равно.\nя снова долго думал, с ночи до утра,\nчто мне никто не нужен, нужна лишь Ты одна.\n\nТвой голос лечит душу, в нем столько доброты,\nя в нем хочу остаться, в нем нет той пустоты.\nс Тобой я научился свой каждый миг ценить.\nТы - лучшее, что жизнь могла мне подарить.`;
+        poemArea.onclick = null;
+        typeWriter(poem, document.getElementById('poem-content'), () => {
+            document.getElementById('poem-back-btn').style.display = 'inline-block';
+        });
+    }
+
+    function closeSecret() {
+        secretBox.style.display = 'none';
+        errorMsg.style.display = 'none';
+        if(isFinished) document.getElementById('final-msg').style.display = 'block';
+    }
 </script>
 </body>
 </html>
