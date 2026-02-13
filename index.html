@@ -3,20 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Для Сонячки 💗</title>
+    <title>для Монячки</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-        body { margin: 0; padding: 0; background: #ffe6f0; overflow: hidden; font-family: 'Press Start 2P', cursive; touch-action: manipulation; }
-        .heart-particle { position: fixed; top: -50px; font-size: 24px; z-index: 0; user-select: none; pointer-events: none; animation: fall linear forwards; }
+        
+        body { 
+            margin: 0; padding: 0; 
+            background-color: #ffe6f0;
+            background-image: radial-gradient(#ffb3d1 10%, transparent 10%);
+            background-size: 20px 20px;
+            overflow: hidden; 
+            font-family: 'Press Start 2P', cursive; 
+            touch-action: manipulation; 
+        }
+
+        .heart-particle { position: fixed; top: -50px; font-size: 20px; z-index: 0; pointer-events: none; animation: fall linear forwards; }
         @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
-        #secret-btn { position: absolute; top: 20px; right: 20px; padding: 10px; background: #ffb3d1; border: 3px solid #ff4d6d; font-size: 10px; color: #330000; cursor: pointer; z-index: 1000; }
-        .cat { position: absolute; font-size: 50px; cursor: pointer; z-index: 10; transition: transform 0.2s; user-select: none; }
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 230, 240, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; padding: 20px; box-sizing: border-box; }
-        .note { background: white; padding: 20px; border: 4px solid #ff4d6d; max-width: 90%; font-size: 12px; line-height: 1.6; color: #330000; text-align: center; margin-top: 20px; }
-        #secret-box { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffe6f0; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 3000; padding: 20px; box-sizing: border-box; }
-        #secret-box input { padding: 10px; font-family: 'Press Start 2P'; border: 3px solid #ff4d6d; text-align: center; margin-bottom: 15px; width: 80%; outline: none; }
-        .poem-text { font-size: 10px; line-height: 1.8; text-align: center; color: #330000; white-space: pre-wrap; max-height: 70vh; overflow-y: auto; }
-        #final-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 4px solid #ff4d6d; padding: 20px; text-align: center; display: none; z-index: 4000; font-size: 12px; width: 80%; }
+
+        #secret-btn { position: absolute; top: 20px; right: 20px; padding: 10px; background: #ffb3d1; border: 3px solid #ff4d6d; font-size: 8px; color: #330000; cursor: pointer; z-index: 1000; }
+
+        .clickable-heart { 
+            position: absolute; 
+            font-size: 40px; 
+            cursor: pointer; 
+            z-index: 10; 
+            transition: opacity 0.8s ease; 
+            user-select: none;
+            line-height: 1;
+        }
+
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 230, 240, 0.9); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; padding: 20px; box-sizing: border-box; }
+        .note { background: white; padding: 20px; border: 4px solid #ff4d6d; max-width: 90%; font-size: 10px; line-height: 1.6; color: #330000; text-align: center; margin-top: 20px; }
+
+        #secret-box { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffe6f0; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 3000; padding: 20px; }
+        #secret-box input { padding: 10px; font-family: 'Press Start 2P'; border: 3px solid #ff4d6d; text-align: center; margin-bottom: 15px; width: 70%; outline: none; font-size: 12px; }
+        
+        .back-btn { padding: 8px 15px; font-family: 'Press Start 2P'; font-size: 8px; background: #ffb3d1; border: 3px solid #ff4d6d; cursor: pointer; }
+
+        .poem-text { font-size: 9px; line-height: 1.8; text-align: center; color: #330000; white-space: pre-wrap; }
+
+        #final-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 4px solid #ff4d6d; padding: 20px; text-align: center; display: none; z-index: 4000; font-size: 10px; width: 80%; }
     </style>
 </head>
 <body>
@@ -24,96 +50,107 @@
 <div id="secret-btn">СЕКРЕТ</div>
 
 <div id="overlay">
-    <div style="font-size: 80px;">🐱</div>
+    <div id="big-heart-icon" style="font-size: 50px;">💖</div>
     <div class="note" id="note-text"></div>
-    <p style="font-size: 8px; margin-top: 15px;">(нажми, чтобы закрыть)</p>
+    <p style="font-size: 7px; margin-top: 15px;">(нажми, чтобы закрыть)</p>
 </div>
 
 <div id="secret-box">
     <div id="code-area">
-        <p style="font-size: 10px;">ВВЕДИ КОД:</p>
-        <input type="text" id="code-input" placeholder="******">
+        <p style="font-size: 9px;">ВВЕДИ КОД:</p>
+        <input type="text" id="code-input" maxlength="6">
+        <br>
+        <button class="back-btn" onclick="document.getElementById('secret-box').style.display='none'">НАЗАД</button>
     </div>
     <div id="poem-area" style="display:none;">
         <div class="poem-text" id="poem-content"></div>
-        <button onclick="location.reload()" style="margin-top:20px; padding:10px; font-family:'Press Start 2P'; font-size:10px;">НАЗАД</button>
+        <button class="back-btn" style="margin-top:20px;" onclick="location.reload()">НАЗАД</button>
     </div>
 </div>
 
-<div id="final-msg">УРА! ТЫ ВСЕХ НАШЛА!<br><br>Надеюсь, тебе понравилось. Я очень старался! 💖</div>
+<div id="final-msg">КОНЕЦ! ТЫ ПОЙМАЛА ВСЕХ КОТЯТ.<br><br>НАДЕЮСЬ ТЕБЕ ПОНРАВИЛОСЬ, Я СТАРАЛСЯ</div>
 
 <script>
-    const phrases = ["ты - причина моей самой искренней улыбки","ты делаешь мою жизнь ярче","твой голос - моя любимая музыка","скучаю по тебе даже когда сплю","в мире 16 миллиардов глаз, но твои самые красивые","разговоры с тобой - лучшая терапия","всегда жду твое сообщение","код: 050909","ты мой любимый человечек","обожаю твой смех","ты просто чудо","самая-самая!","целую в носик","ты как цветочек"];
-    const cats = ['🐱', '🐈', '😸', '😻', '😽', '🐾'];
-    let caughtCount = 0;
-    const totalCats = phrases.length;
+    const phrases = [
+        "1. ты - причина моей самой искренней улыбки",
+        "2. ты делаешь мою жизнь ярче, чем что либо еще",
+        "3. твой голос - моя любимая музыка",
+        "4. слушал бы тебя вечно",
+        "5. скучаю по тебе даже когда сплю",
+        "6. в мире 16 миллиардов глаз, но твои самые красивые",
+        "7. разговоры с тобой - лучшая терапия",
+        "8. всегда беру телефон в руки только с надеждой увидеть твое сообщение",
+        "9. не знаю что там чувствовал колумб когда открыл америку, но это точно не сравнится с тем что я испытываю когда слушаю твой голос",
+        "10. невозможно сосчитать сколько раз я улыбаюсь за минуту общения с тобой",
+        "11. с трудом я чувствую себя самим собой",
+        "12. ты как котенок, такая же милая",
+        "13. код: 050909",
+        "14. ты как цветочек в стекле, на который хочется постоянно смотреть и бережно хранить."
+    ];
 
-    // Падающие сердечки
-    function spawnHeart() {
+    const heartIcons = ['💘','💝','💖','💗','💓','🩷'];
+    let caughtCount = 0;
+    let isLastMessage = false;
+
+    function spawnBg() {
         const h = document.createElement('div');
         h.className = 'heart-particle';
-        h.innerText = '💗';
+        h.innerText = '🌸';
         h.style.left = Math.random() * 100 + 'vw';
-        h.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        h.style.animationDuration = (Math.random() * 2 + 5) + 's';
         document.body.appendChild(h);
-        setTimeout(() => h.remove(), 5000);
+        setTimeout(() => h.remove(), 6000);
     }
-    setInterval(spawnHeart, 400);
+    setInterval(spawnBg, 800);
 
-    // Котята
-    function createCat(index) {
-        const cat = document.createElement('div');
-        cat.className = 'cat';
-        cat.innerText = cats[index % cats.length];
-        let x = Math.random() * (window.innerWidth - 60);
-        let y = Math.random() * (window.innerHeight - 60);
-        let dx = (Math.random() - 0.5) * 4;
-        let dy = (Math.random() - 0.5) * 4;
+    function createHeart(index) {
+        const h = document.createElement('div');
+        h.className = 'clickable-heart';
+        h.innerText = heartIcons[index % heartIcons.length];
+        let x = Math.random() * (window.innerWidth - 50);
+        let y = Math.random() * (window.innerHeight - 50);
+        let dx = (Math.random() - 0.5) * 2; 
+        let dy = (Math.random() - 0.5) * 2;
 
         function move() {
             if (document.getElementById('overlay').style.display !== 'flex' && document.getElementById('secret-box').style.display !== 'flex') {
                 x += dx; y += dy;
-                if (x <= 0 || x >= window.innerWidth - 60) dx *= -1;
-                if (y <= 0 || y >= window.innerHeight - 60) dy *= -1;
-                cat.style.left = x + 'px';
-                cat.style.top = y + 'px';
+                if (x <= 0 || x >= window.innerWidth - 50) dx *= -1;
+                if (y <= 0 || y >= window.innerHeight - 50) dy *= -1;
+                h.style.left = x + 'px';
+                h.style.top = y + 'px';
             }
             requestAnimationFrame(move);
         }
 
-        cat.onclick = () => {
-            if(cat.style.opacity === "0.3") return;
-            const overlay = document.getElementById('overlay');
-            const noteText = document.getElementById('note-text');
-            overlay.style.display = 'flex';
-            noteText.innerText = phrases[index];
-            cat.style.opacity = "0.3";
+        h.onclick = () => {
+            if(h.style.opacity === "0") return;
+            document.getElementById('note-text').innerText = phrases[index];
+            document.getElementById('big-heart-icon').innerText = h.innerText;
+            document.getElementById('overlay').style.display = 'flex';
+            h.style.opacity = '0';
+            h.style.pointerEvents = 'none';
             caughtCount++;
-            if(caughtCount === totalCats) {
-                document.getElementById('final-msg').style.display = 'block';
-            }
+            if(caughtCount === phrases.length) isLastMessage = true;
         };
-        document.body.appendChild(cat);
+        document.body.appendChild(h);
         move();
     }
 
-    for(let i=0; i<totalCats; i++) createCat(i);
+    phrases.forEach((_, i) => createHeart(i));
 
-    document.getElementById('overlay').onclick = function() { this.style.display = 'none'; };
+    document.getElementById('overlay').onclick = function() {
+        this.style.display = 'none';
+        if(isLastMessage) document.getElementById('final-msg').style.display = 'block';
+    };
 
-    // Секрет
-    const secretBtn = document.getElementById('secret-btn');
-    const secretBox = document.getElementById('secret-box');
-    const codeInput = document.getElementById('code-input');
+    document.getElementById('secret-btn').onclick = () => { document.getElementById('secret-box').style.display = 'flex'; };
 
-    secretBtn.onclick = () => { secretBox.style.display = 'flex'; };
-
-    codeInput.oninput = () => {
-        if(codeInput.value === '050909') {
+    document.getElementById('code-input').oninput = (e) => {
+        if(e.target.value === '050909') {
             document.getElementById('code-area').style.display = 'none';
             document.getElementById('poem-area').style.display = 'block';
-            const poem = `Ты греешь мое сердце, будто пришла весна,\nя не верю в свое счастье, ведь счастье - Ты одна.\nТы бываешь в моих мыслях, даже когда спишь,\nи если я не сплю, Ты в голове моей звучишь.\n\nмне бывает часто грустно, и в комнате темно,\nно если рядом Ты, на все проблемы все равно.\nя снова долго думал, с ночи до утра,\nчто мне никто не нужен, нужна лишь Ты одна.\n\nТвой голос лечит душу, в нем столько доброты,\nя в нем хочу остаться, в нем нет той пустоты.\nс Тобой я научился свой каждый миг ценить.\nТы - лучшее, что жизнь могла мне подарить.`;
-            document.getElementById('poem-content').innerText = poem;
+            document.getElementById('poem-content').innerText = `Ты греешь мое сердце, будто пришла весна,\nя не верю в свое счастье, ведь счастье - Ты одна.\nТы бываешь в моих мыслях, даже когда спишь,\nи если я не сплю, Ты в голове моей звучишь.\n\nмне бывает часто грустно, и в комнате темно,\nно если рядом Ты, на все проблемы все равно.\nя снова долго думал, с ночи до утра,\nчто мне никто не нужен, нужна лишь Ты одна.\n\nТвой голос лечит душу, в нем столько доброты,\nя в нем хочу остаться, в нем нет той пустоты.\nс Тобой я научился свой каждый миг ценить.\nТы - лучшее, что жизнь могла мне подарить.`;
         }
     };
 </script>
