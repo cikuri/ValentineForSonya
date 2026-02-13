@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Для Сонячки 💗</title>
+    <title>для Монячки</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         
@@ -27,12 +27,12 @@
         #secret-box { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffe6f0; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 5000; padding: 20px; box-sizing: border-box; }
         #secret-box input { padding: 12px; font-family: 'Press Start 2P'; border: 3px solid #ff4d6d; text-align: center; margin-bottom: 15px; width: 80%; outline: none; font-size: 12px; background: white; }
         
-        #error-msg { color: #ff4d6d; font-size: 7px; margin-bottom: 10px; line-height: 1.4; display: none; max-width: 80%; }
+        #error-msg { color: #ff4d6d; font-size: 7px; margin-bottom: 10px; line-height: 1.4; display: none; max-width: 80%; text-align: center; }
 
         .back-btn { padding: 8px 15px; font-family: 'Press Start 2P'; font-size: 8px; background: #ffb3d1; border: 3px solid #ff4d6d; cursor: pointer; color: #330000; margin: 5px; }
 
-        #poem-area { width: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        .poem-text { font-size: 9px; line-height: 1.6; text-align: center; color: #330000; white-space: pre-wrap; width: 95%; max-height: 70vh; overflow-y: auto; margin-bottom: 10px; }
+        #poem-area { width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; z-index: 6000; }
+        .poem-text { font-size: 9px; line-height: 1.6; text-align: center; color: #330000; white-space: pre-wrap; width: 90%; max-height: 70vh; overflow-y: auto; margin-bottom: 10px; pointer-events: none; }
 
         #final-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 4px solid #ff4d6d; padding: 20px; text-align: center; display: none; z-index: 4000; font-size: 10px; width: 80%; line-height: 1.5; }
         
@@ -59,7 +59,8 @@
     </div>
     <div id="poem-area">
         <div class="poem-text" id="poem-content"></div>
-        <button id="poem-back-btn" class="back-btn" style="display:none;" onclick="closeSecret()">Назад</button>
+        <button id="poem-back-btn" class="back-btn" style="display:none; pointer-events: auto;" onclick="closeSecret()">Назад</button>
+        <p id="tap-hint" style="font-size: 6px; margin-top: 10px; color: #ff4d6d; display:none;">(нажми на экран)</p>
     </div>
 </div>
 
@@ -68,10 +69,9 @@
 <div class="footer-credit">special for София Мяуковна</div>
 
 <script>
-    const popSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
-    const typeSound = new Audio('https://assets.mixkit.co/active_storage/sfx/444/444-preview.mp3');
-    typeSound.loop = true;
-
+    const popSound = new Audio('https://pixabay.com/static/audio/2022/03/15/audio_783850666a.mp3');
+    const typeSound = new Audio('https://pixabay.com/static/audio/2022/03/10/audio_c33038a201.mp3');
+    
     const phrases = [
         "Ты - причина моей самой искренней улыбки",
         "Ты делаешь мою жизнь ярче, чем что либо еще",
@@ -83,7 +83,7 @@
         "всегда беру телефон в руки только с надеждой увидеть Твое сообщение",
         "не знаю что там чувствовал колумб когда открыл америку, но это точно не сравнится с тем что я испытываю когда слушаю Твой голос",
         "невозможно сосчитать сколько раз я улыбаюсь за минуту общения с Тобой",
-        "с трудом я чувствую себя самим собой",
+        "с Тобой я чувствую себя самим собой",
         "Ты как котенок, такая же милая",
         "код: 050909",
         "Ты как цветочек в стекле, на который хочется постоянно смотреть и бережно хранить."
@@ -94,6 +94,7 @@
     let isFinished = false;
     let codeAccepted = false;
     let isTyping = false;
+    let step = 0;
 
     function createHeart(index) {
         const h = document.createElement('div');
@@ -138,14 +139,14 @@
         if(isFinished) document.getElementById('final-msg').style.display = 'block';
     };
 
-    const secretBtn = document.getElementById('secret-btn');
     const secretBox = document.getElementById('secret-box');
     const poemArea = document.getElementById('poem-area');
     const codeArea = document.getElementById('code-area');
     const codeInput = document.getElementById('code-input');
     const errorMsg = document.getElementById('error-msg');
+    const poemContent = document.getElementById('poem-content');
 
-    secretBtn.onclick = () => {
+    document.getElementById('secret-btn').onclick = () => {
         secretBox.style.display = 'flex';
         document.getElementById('final-msg').style.display = 'none';
         if(codeAccepted) {
@@ -155,12 +156,7 @@
         }
     };
 
-    // Слушатель нажатия Enter на клавиатуре
-    codeInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            checkCode();
-        }
-    });
+    codeInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') checkCode(); });
 
     function checkCode() {
         if(codeInput.value === '050909') {
@@ -168,54 +164,54 @@
             errorMsg.style.display = 'none';
             codeArea.style.display = 'none';
             poemArea.style.display = 'flex';
-            startSequence();
+            step = 1;
+            typeWriter("Умничка!", poemContent, () => { document.getElementById('tap-hint').style.display = 'block'; });
         } else {
             errorMsg.style.display = 'block';
             codeInput.value = '';
         }
     }
 
+    poemArea.onclick = () => {
+        if(isTyping) return;
+        if(step === 1) {
+            step = 2;
+            document.getElementById('tap-hint').style.display = 'none';
+            typeWriter("Этот стих я написал для Тебя и посвящаю Тебе:", poemContent, () => { 
+                document.getElementById('tap-hint').style.display = 'block'; 
+            });
+        } else if(step === 2) {
+            step = 3;
+            document.getElementById('tap-hint').style.display = 'none';
+            showFullPoem();
+        }
+    };
+
     function typeWriter(text, element, callback) {
         let i = 0;
         element.innerText = "";
         isTyping = true;
-        typeSound.play().catch(()=>{});
         
         function type() {
             if (i < text.length) {
                 element.innerText += text.charAt(i);
+                typeSound.currentTime = 0;
+                typeSound.play().catch(()=>{});
                 i++;
-                setTimeout(type, 60);
+                setTimeout(type, 50);
             } else {
                 isTyping = false;
-                typeSound.pause();
                 if(callback) callback();
             }
         }
         type();
     }
 
-    function startSequence() {
-        typeWriter("Умничка!", document.getElementById('poem-content'), () => {
-            poemArea.onclick = () => {
-                if(isTyping) return;
-                poemArea.onclick = null;
-                typeWriter("Этот стих я написал для Тебя и посвящаю Тебе:", document.getElementById('poem-content'), () => {
-                    setTimeout(() => {
-                        poemArea.onclick = showFullPoem;
-                    }, 500);
-                });
-            };
-        });
-    }
-
     function showFullPoem() {
-        if(isTyping) return;
-        const poem = `Ты греешь мое сердце, будто пришла весна,\nя не верю в свое счастье, ведь счастье - Ты одна.\nТы бываешь в моих мыслях, даже когда спишь,\nи если я не сплю, Ты в голове моей звучишь.\n\nмне бывает часто грустно, и в комнате темно,\nно если рядом Ты, на все проблемы все равно.\nя снова долго думал, с ночи до утра,\nчто мне никто не нужен, нужна лишь Ты одна.\n\nТвой голос лечит душу, в нем столько доброты,\nя в нем хочу остаться, в нем нет той пустоты.\nс Тобой я научился свой каждый миг ценить.\nТы - лучшее, что жизнь могла мне подарить.`;
-        poemArea.onclick = null;
-        typeWriter(poem, document.getElementById('poem-content'), () => {
-            document.getElementById('poem-back-btn').style.display = 'inline-block';
-        });
+        // Стих появляется СРАЗУ
+        const poem = `Ты греешь мое сердце, будто пришла весна,\nя не верю в свое счастье, ведь счастье - Ты одна.\nТы бываешь в моих мыслях, даже когда спишь,\nи если я не сплю, Ты в голове моей звучишь.\n\nмне бывает часто грустно, и в комнате темно,\nно если рядом Ты, на все проблемы все равно.\nя снова долго думал, с ночи до утра,\nчто мне никто не нужен, нужна лишь Ты одна.\n\nТвой голос лечит душу, в нем столько доброты,\nя в нем хочу остаться, в нем нет той пустоты.\nс Тобой я чувствую себя самим собой.\nТы - лучшее, что жизнь могла мне подарить.`;
+        poemContent.innerText = poem;
+        document.getElementById('poem-back-btn').style.display = 'inline-block';
     }
 
     function closeSecret() {
