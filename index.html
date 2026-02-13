@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>для Монячки</title>
+    <title>для Монячки!</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         
@@ -22,7 +23,7 @@
         .clickable-heart { position: absolute; font-size: 40px; cursor: pointer; z-index: 10; transition: opacity 0.8s ease; user-select: none; line-height: 1; }
 
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 230, 240, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; padding: 20px; box-sizing: border-box; }
-        .note { background: white; padding: 20px; border: 4px solid #ff4d6d; max-width: 90%; font-size: 10px; line-height: 1.6; color: #330000; text-align: center; margin-top: 20px; }
+        .note { background: white; padding: 20px; border: 4px solid #ff4d6d; max-width: 90%; font-size: 10px; line-height: 1.6; color: #330000; text-align: center; }
 
         #secret-box { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffe6f0; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 5000; padding: 20px; box-sizing: border-box; }
         #secret-box input { padding: 12px; font-family: 'Press Start 2P'; border: 3px solid #ff4d6d; text-align: center; margin-bottom: 15px; width: 80%; outline: none; font-size: 12px; background: white; }
@@ -34,7 +35,7 @@
         #poem-area { width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; z-index: 6000; }
         .poem-text { font-size: 9px; line-height: 1.6; text-align: center; color: #330000; white-space: pre-wrap; width: 90%; max-height: 70vh; overflow-y: auto; margin-bottom: 10px; pointer-events: none; }
 
-        #final-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 4px solid #ff4d6d; padding: 20px; text-align: center; display: none; z-index: 4000; font-size: 10px; width: 80%; line-height: 1.5; }
+        #final-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 4px solid #ff4d6d; padding: 20px; text-align: center; display: none; z-index: 4000; font-size: 10px; width: 80%; line-height: 1.5; box-shadow: 0 0 20px rgba(255, 77, 109, 0.3); }
         
         .footer-credit { position: fixed; bottom: 15px; right: 15px; font-size: 8px; color: #ff4d6d; z-index: 5; font-weight: bold; }
     </style>
@@ -44,9 +45,8 @@
 <div id="secret-btn">СЕКРЕТ</div>
 
 <div id="overlay">
-    <div id="big-heart-icon" style="font-size: 50px;">💖</div>
+    <div id="big-heart-icon" style="font-size: 50px; margin-bottom: 15px;">💖</div>
     <div class="note" id="note-text"></div>
-    <p style="font-size: 7px; margin-top: 15px;">(нажми, чтобы закрыть)</p>
 </div>
 
 <div id="secret-box">
@@ -60,7 +60,6 @@
     <div id="poem-area">
         <div class="poem-text" id="poem-content"></div>
         <button id="poem-back-btn" class="back-btn" style="display:none; pointer-events: auto;" onclick="closeSecret()">Назад</button>
-        <p id="tap-hint" style="font-size: 6px; margin-top: 10px; color: #ff4d6d; display:none;">(нажми на экран)</p>
     </div>
 </div>
 
@@ -69,10 +68,14 @@
 <div class="footer-credit">special for София Мяуковна</div>
 
 <script>
-    const popSound = new Audio('https://pixabay.com/static/audio/2022/03/15/audio_783850666a.mp3');
-    const typeSound = new Audio('https://pixabay.com/static/audio/2022/03/10/audio_c33038a201.mp3');
+    const popSounds = [
+        new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'),
+        new Audio('https://assets.mixkit.co/active_storage/sfx/2017/2017-preview.mp3')
+    ];
+    const typeSound = new Audio('https://assets.mixkit.co/active_storage/sfx/444/444-preview.mp3');
+    // Новый магический праздничный звук
+    const winSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3'); 
     
-    // Фразы без кода (код добавим динамически)
     let mainPhrases = [
         "Ты - причина моей самой искренней улыбки",
         "Ты делаешь мою жизнь ярче, чем что либо еще",
@@ -95,7 +98,7 @@
     let codeAccepted = false;
     let isTyping = false;
     let step = 0;
-    let codeIndex = -1; // Индекс сердечка, в котором будет код
+    let codeFound = false;
 
     function createHeart(index, total) {
         const h = document.createElement('div');
@@ -103,8 +106,8 @@
         h.innerText = heartIcons[index % heartIcons.length];
         let x = Math.random() * (window.innerWidth - 60);
         let y = Math.random() * (window.innerHeight - 60);
-        let dx = (Math.random() - 0.5) * 2; 
-        let dy = (Math.random() - 0.5) * 2;
+        let dx = (Math.random() - 0.5) * 2.5; 
+        let dy = (Math.random() - 0.5) * 2.5;
 
         function move() {
             if (document.getElementById('overlay').style.display !== 'flex' && document.getElementById('secret-box').style.display !== 'flex') {
@@ -119,18 +122,14 @@
 
         h.onclick = () => {
             if(h.style.opacity === "0") return;
-            popSound.currentTime = 0;
-            popSound.play().catch(()=>{});
-            
+            popSounds[Math.floor(Math.random()*popSounds.length)].play().catch(()=>{});
             caughtCount++;
             
-            // Логика выдачи текста: если это ПЯТОЕ пойманное сердечко или позже, и код еще не выдан
             let currentText = "";
-            if (caughtCount >= 6 && codeIndex === -1) {
-                // С шансом 30% или если это последнее сердечко — даем код
-                if (Math.random() > 0.7 || caughtCount === total) {
+            if (caughtCount >= 6 && !codeFound) {
+                if (Math.random() > 0.6 || caughtCount === total) {
                     currentText = "код: 050909";
-                    codeIndex = caughtCount;
+                    codeFound = true;
                 } else {
                     currentText = mainPhrases.pop();
                 }
@@ -144,15 +143,27 @@
             h.style.opacity = '0';
             h.style.pointerEvents = 'none';
             
-            if(caughtCount === total) isFinished = true;
+            if(caughtCount === total) {
+                isFinished = true;
+                setTimeout(triggerWin, 300);
+            }
         };
         document.body.appendChild(h);
         move();
     }
 
-    // Перемешиваем фразы
+    function triggerWin() {
+        winSound.play().catch(()=>{});
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#ff4d6d', '#ffb3d1', '#ffffff']
+        });
+    }
+
     mainPhrases.sort(() => Math.random() - 0.5);
-    const totalHearts = mainPhrases.length + 1; // +1 для фразы с кодом
+    const totalHearts = mainPhrases.length + 1;
     for(let i=0; i < totalHearts; i++) {
         createHeart(i, totalHearts);
     }
@@ -188,7 +199,7 @@
             codeArea.style.display = 'none';
             poemArea.style.display = 'flex';
             step = 1;
-            typeWriter("Умничка!", poemContent, () => { document.getElementById('tap-hint').style.display = 'block'; });
+            typeWriter("Умничка!", poemContent);
         } else {
             errorMsg.style.display = 'block';
             codeInput.value = '';
@@ -199,13 +210,9 @@
         if(isTyping) return;
         if(step === 1) {
             step = 2;
-            document.getElementById('tap-hint').style.display = 'none';
-            typeWriter("Этот стих я написал для Тебя и посвящаю Тебе:", poemContent, () => { 
-                document.getElementById('tap-hint').style.display = 'block'; 
-            });
+            typeWriter("Этот стих я написал для Тебя и посвящаю Тебе:", poemContent);
         } else if(step === 2) {
             step = 3;
-            document.getElementById('tap-hint').style.display = 'none';
             showFullPoem();
         }
     };
@@ -214,7 +221,6 @@
         let i = 0;
         element.innerText = "";
         isTyping = true;
-        
         function type() {
             if (i < text.length) {
                 element.innerText += text.charAt(i);
