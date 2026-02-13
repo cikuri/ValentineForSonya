@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Для Сонячки 💗</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        body {
+            margin: 0; padding: 0;
+            background: #ffe6f0;
+            overflow: hidden;
+            font-family: 'Press Start 2P', cursive;
+            touch-action: manipulation;
+        }
+
+        /* Падающие сердечки */
+        .heart-particle {
+            position: fixed;
+            top: -50px;
+            font-size: 20px;
+            z-index: 0;
+            user-select: none;
+            pointer-events: none;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(360deg); }
+        }
+
+        /* Кнопка Секрет */
+        #secret-btn {
+            position: absolute;
+            top: 20px; right: 20px;
+            padding: 10px;
+            background: #ffb3d1;
+            border: 3px solid #ff4d6d;
+            font-size: 8px;
+            color: #330000;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        /* Котики */
+        .cat {
+            position: absolute;
+            width: 80px;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.2s;
+        }
+
+        /* Оверлей для фокуса */
+        #overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255, 230, 240, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 2000;
+            padding: 20px; box-sizing: border-box;
+        }
+
+        .note {
+            background: white;
+            padding: 20px;
+            border: 4px solid #ff4d6d;
+            max-width: 90%;
+            font-size: 10px;
+            line-height: 1.6;
+            color: #330000;
+            text-align: center;
+            margin-top: 20px;
+            box-shadow: 10px 10px 0px rgba(255, 77, 109, 0.2);
+        }
+
+        /* Секретное окно */
+        #secret-box {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #ffe6f0;
+            display: none;
+            flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 3000;
+            overflow-y: auto;
+            padding: 20px; box-sizing: border-box;
+        }
+
+        #secret-box input {
+            padding: 10px;
+            font-family: 'Press Start 2P';
+            border: 3px solid #ff4d6d;
+            text-align: center;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        .poem-text {
+            font-size: 9px;
+            line-height: 2;
+            text-align: center;
+            color: #330000;
+            white-space: pre-wrap;
+        }
+
+        #final-msg {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 4px solid #ff4d6d;
+            padding: 20px;
+            text-align: center;
+            display: none;
+            z-index: 4000;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="secret-btn">СЕКРЕТ</div>
+
+<div id="overlay">
+    <img id="focused-cat" style="width: 200px;">
+    <div class="note" id="note-text"></div>
+    <p style="font-size: 8px; margin-top: 15px;">(нажми, чтобы закрыть)</p>
+</div>
+
+<div id="secret-box">
+    <div id="code-area">
+        <p style="font-size: 10px;">ВВЕДИ КОД:</p>
+        <input type="text" id="code-input" maxlength="6">
+    </div>
+    <div id="poem-area" style="display:none;">
+        <div class="poem-text" id="poem-content"></div>
+        <button onclick="location.reload()" style="margin-top:20px; padding:10px; font-family:'Press Start 2P'; font-size:8px;">НАЗАД</button>
+    </div>
+</div>
+
+<div id="final-msg">
+    КОНЕЦ! ТЫ ПОЙМАЛА ВСЕХ КОТЯТ.<br><br>
+    НАДЕЮСЬ ТЕБЕ ПОНРАВИЛОСЬ, Я СТАРАЛСЯ
+</div>
+
+<script>
+    const phrases = [
+        "ты - причина моей самой искренней улыбки",
+        "ты делаешь мою жизнь ярче, чем что либо еще",
+        "твой голос - моя любимая музыка",
+        "слушал бы тебя вечно",
+        "скучаю по тебе даже когда сплю",
+        "в мире 16 миллиардов глаз, но твои самые красивые",
+        "разговоры с тобой - лучшая терапия",
+        "всегда беру телефон в руки только с надеждой увидеть твое сообщение",
+        "не знаю что там чувствовал колумб когда открыл америку, но это точно не сравнится с тем что я испытываю когда слушаю твой голос",
+        "невозможно сосчитать сколько раз я улыбаюсь за минуту общения с тобой",
+        "с тобой я чувствую себя самим собой",
+        "сделай меня самым счастливым",
+        "код: 050909",
+        "ты как цветочек в стекле, на который хочется постоянно смотреть и бережно хранить."
+    ];
+
+    const catImgs = [
+        'https://i.pinimg.com/originals/9e/7b/0a/9e7b0a33f38096230f89551c91d4911d.png',
+        'https://pngimg.com/d/cat_PNG103.png',
+        'https://static.vecteezy.com/system/resources/thumbnails/024/244/004/small_2x/cute-cat-ai-generated-free-png.png',
+        'https://www.pngarts.com/files/1/Cat-PNG-Transparent-Image.png'
+    ];
+
+    let caughtCount = 0;
+    const totalCats = 14;
+
+    // Генерация сердечек
+    function spawnHeart() {
+        const h = document.createElement('div');
+        h.className = 'heart-particle';
+        h.innerText = ['💖','💗','💓','💕'][Math.floor(Math.random()*4)];
+        h.style.left = Math.random() * 100 + 'vw';
+        h.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        document.body.appendChild(h);
+        setTimeout(() => h.remove(), 5000);
+    }
+    setInterval(spawnHeart, 300);
+
+    // Печать текста
+    function typeEffect(element, text) {
+        element.innerHTML = "";
+        let i = 0;
+        const timer = setInterval(() => {
+            element.innerHTML += text[i];
+            i++;
+            if(i >= text.length) clearInterval(timer);
+        }, 50px);
+    }
+
+    // Создание котов
+    function createCat(index) {
+        const cat = document.createElement('img');
+        cat.src = catImgs[index % catImgs.length];
+        cat.className = 'cat';
+        
+        let x = Math.random() * (window.innerWidth - 80);
+        let y = Math.random() * (window.innerHeight - 80);
+        let dx = (Math.random() - 0.5) * 3;
+        let dy = (Math.random() - 0.5) * 3;
+
+        function move() {
+            if (document.getElementById('overlay').style.display !== 'flex' && 
+                document.getElementById('secret-box').style.display !== 'flex') {
+                x += dx; y += dy;
+                if (x <= 0 || x >= window.innerWidth - 80) dx *= -1;
+                if (y <= 0 || y >= window.innerHeight - 80) dy *= -1;
+                cat.style.left = x + 'px';
+                cat.style.top = y + 'px';
+                cat.style.transform = dx > 0 ? 'scaleX(1)' : 'scaleX(-1)';
+            }
+            requestAnimationFrame(move);
+        }
+
+        cat.onclick = () => {
+            if(cat.style.opacity === "0.3") return;
+            
+            const overlay = document.getElementById('overlay');
+            const noteText = document.getElementById('note-text');
+            document.getElementById('focused-cat').src = cat.src;
+            
+            overlay.style.display = 'flex';
+            typeEffect(noteText, phrases[index]);
+            
+            cat.style.opacity = "0.3";
+            caughtCount++;
+            
+            if(caughtCount === totalCats) {
+                setTimeout(showWin, 1000);
+            }
+        };
+
+        document.body.appendChild(cat);
+        move();
+    }
+
+    for(let i=0; i<totalCats; i++) createCat(i);
+
+    document.getElementById('overlay').onclick = function() { this.style.display = 'none'; };
+
+    // Секрет
+    const secretBtn = document.getElementById('secret-btn');
+    const secretBox = document.getElementById('secret-box');
+    const codeInput = document.getElementById('code-input');
+
+    secretBtn.onclick = () => { secretBox.style.display = 'flex'; };
+
+    codeInput.oninput = () => {
+        if(codeInput.value === '050909') {
+            document.getElementById('code-area').style.display = 'none';
+            document.getElementById('poem-area').style.display = 'block';
+            const poem = `Ты греешь мое сердце, будто пришла весна,
+я не верю в свое счастье, ведь счастье - Ты одна.
+Ты бываешь в моих мыслях, даже когда спишь,
+и если я не сплю, Ты в голове моей звучишь.
+
+мне бывает часто грустно, и в комнате темно,
+но если рядом Ты, на все проблемы все равно.
+я снова долго думал, с ночи до утра,
+что мне никто не нужен, нужна лишь Ты одна.
+
+Твой голос лечит душу, в нем столько доброты,
+я в нем хочу остаться, в нем нет той пустоты.
+с Тобой я научился свой каждый миг ценить.
+Ты - лучшее, что жизнь могла мне подарить.`;
+            typeEffect(document.getElementById('poem-content'), poem);
+        }
+    };
+
+    function showWin() {
+        confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+        document.getElementById('final-msg').style.display = 'block';
+    }
+</script>
+</body>
+</html>
