@@ -22,16 +22,40 @@
         .clickable-heart { position: absolute; font-size: 40px; cursor: pointer; z-index: 10; transition: opacity 0.8s ease; user-select: none; line-height: 1; }
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 230, 240, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; padding: 20px; box-sizing: border-box; }
         .note { background: white; padding: 20px; border: 4px solid #ff4d6d; max-width: 90%; font-size: 10px; line-height: 1.8; color: #330000; text-align: center; }
+        
         #secret-box { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #ffe6f0; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 5000; padding: 20px; box-sizing: border-box; }
-        #secret-box input { padding: 12px; font-family: 'Press Start 2P'; border: 3px solid #ff4d6d; text-align: center; margin-bottom: 15px; width: 80%; outline: none; font-size: 12px; background: white; }
+        
+        #secret-box input { 
+            padding: 12px; 
+            font-family: 'Press Start 2P'; 
+            border: 3px solid #ff4d6d; 
+            text-align: center; 
+            margin-bottom: 15px; 
+            width: 80%; 
+            outline: none; 
+            font-size: 14px; 
+            background: white; 
+            -webkit-appearance: none; /* Убирает тени на iOS */
+        }
+        
         #error-msg { color: #ff4d6d; font-size: 7px; margin-bottom: 10px; line-height: 1.4; display: none; max-width: 80%; text-align: center; }
-        .back-btn { padding: 8px 15px; font-family: 'Press Start 2P'; font-size: 8px; background: #ffb3d1; border: 3px solid #ff4d6d; cursor: pointer; color: #330000; margin: 5px; }
+        
+        .check-btn { 
+            padding: 12px 25px; 
+            font-family: 'Press Start 2P'; 
+            font-size: 10px; 
+            background: #ff4d6d; 
+            border: 3px solid #330000; 
+            cursor: pointer; 
+            color: white; 
+            margin-bottom: 10px;
+        }
+        
+        .back-btn { padding: 8px 15px; font-family: 'Press Start 2P'; font-size: 8px; background: #ffb3d1; border: 3px solid #ff4d6d; cursor: pointer; color: #330000; }
+
         #poem-area { width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; z-index: 6000; }
         .poem-text { font-size: 9px; line-height: 1.6; text-align: center; color: #330000; white-space: pre-wrap; width: 90%; max-height: 70vh; overflow-y: auto; margin-bottom: 10px; pointer-events: none; }
-        
-        /* Стили для финального сообщения */
-        #final-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 4px solid #ff4d6d; padding: 30px 20px; text-align: center; display: none; z-index: 4000; font-size: 10px; width: 85%; line-height: 1.8; box-shadow: 0 0 30px rgba(255, 77, 109, 0.2); color: #330000; }
-        
+        #final-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 4px solid #ff4d6d; padding: 30px 20px; text-align: center; display: none; z-index: 4000; font-size: 10px; width: 85%; line-height: 1.8; color: #330000; }
         .footer-credit { position: fixed; bottom: 15px; right: 15px; font-size: 8px; color: #ff4d6d; z-index: 5; font-weight: bold; }
     </style>
 </head>
@@ -45,10 +69,12 @@
 </div>
 
 <div id="secret-box">
-    <div id="code-area">
+    <div id="code-area" style="text-align:center; width:100%;">
         <div id="error-msg">ой, неправильно! попробуй поискать код, может он где-то спрятался?</div>
         <p style="font-size: 9px; margin-bottom: 15px;">Введи код:</p>
-        <input type="text" id="code-input" placeholder="******" maxlength="6" inputmode="numeric">
+        <input type="tel" id="code-input" placeholder="******" maxlength="6">
+        <br>
+        <button class="check-btn" onclick="checkCode()">ВВЕСТИ</button>
         <br>
         <button class="back-btn" onclick="closeSecret()">Назад</button>
     </div>
@@ -58,7 +84,7 @@
     </div>
 </div>
 
-<div id="final-msg">конец! все сердечки пойманы, все слова сказаны.<br><br>надеюсь Тебе понравилось, и мне удалось передать хотя бы частичку того, что я чувствую к Тебе. я очень старался чтобы Ты улыбнулась.<br><br>Du - mein wichtigstes Wunder.🩷</div>
+<div id="final-msg">Конец! все сердечки пойманы, все слова сказаны.<br><br>надеюсь Тебе понравилось, и мне удалось передать хотя бы частичку того, что я чувствую к Тебе. я очень старался чтобы Ты улыбнулась.<br><br>Du - mein wichtigstes Wunder.🩷</div>
 
 <div class="footer-credit">special for София Мяуковна</div>
 
@@ -66,6 +92,7 @@
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     function playSynthSound(freq, type, duration, vol) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = type;
@@ -78,30 +105,18 @@
         osc.stop(audioCtx.currentTime + duration);
     }
 
-    function playHeartSound() {
-        playSynthSound(880, 'sine', 0.2, 0.1);
-        setTimeout(() => playSynthSound(1320, 'sine', 0.1, 0.05), 50);
-    }
-
-    function playTypeSound() {
-        playSynthSound(1100, 'square', 0.05, 0.02);
-    }
-
+    function playHeartSound() { playSynthSound(880, 'sine', 0.2, 0.1); }
+    function playTypeSound() { playSynthSound(1100, 'square', 0.05, 0.02); }
     const winSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3');
 
     let mainPhrases = [
-        "Ты - причина моей самой искренней улыбки",
-        "Ты делаешь мою жизнь ярче, чем что либо еще",
-        "Твой голос - моя любимая музыка",
-        "слушал бы Тебя вечно",
-        "скучаю по Тебе даже когда сплю",
-        "в мире 16 миллиардов глаз, но Твои самые красивые",
-        "разговоры с Тобой - лучшая терапия",
+        "Ты - причина моей самой искренней улыбки", "Ты делаешь мою жизнь ярче, чем что либо еще",
+        "Твой голос - моя любимая музыка", "слушал бы Тебя вечно", "скучаю по Тебе даже когда сплю",
+        "в мире 16 миллиардов глаз, но Твои самые красивые", "разговоры с Тобой - лучшая терапия",
         "всегда беру телефон в руки только с надеждой увидеть Твое сообщение",
         "не знаю что там чувствовал колумб когда открыл америку, но это точно не сравнится с тем что я испытываю когда слушаю Твой голос",
         "невозможно сосчитать сколько раз я улыбаюсь за минуту общения с Тобой",
-        "с Тобой я чувствую себя самим собой",
-        "Ты как маленький котенок, такая же нежная и милая",
+        "с Тобой я чувствую себя самим собой", "Ты как котенок, такая же милая",
         "Ты как цветочек в стекле, на который хочется постоянно смотреть и бережно хранить"
     ];
 
@@ -135,115 +150,84 @@
 
         h.onclick = () => {
             if(h.style.opacity === "0") return;
-            if (audioCtx.state === 'suspended') audioCtx.resume();
             playHeartSound();
             caughtCount++;
-            
             let currentText = "";
             if (caughtCount >= 6 && !codeFound) {
                 if (Math.random() > 0.6 || caughtCount === total) {
                     currentText = "код: 050909";
                     codeFound = true;
-                } else {
-                    currentText = mainPhrases.pop();
-                }
-            } else {
-                currentText = mainPhrases.pop();
-            }
+                } else { currentText = mainPhrases.pop(); }
+            } else { currentText = mainPhrases.pop(); }
 
             document.getElementById('note-text').innerText = currentText || "Ты просто чудо!";
             document.getElementById('big-heart-icon').innerText = h.innerText;
             document.getElementById('overlay').style.display = 'flex';
             h.style.opacity = '0';
             h.style.pointerEvents = 'none';
-            
             if(caughtCount === total) isFinished = true;
         };
         document.body.appendChild(h);
         move();
     }
 
-    function triggerWin() {
-        winSound.play().catch(()=>{});
-        confetti({
-            particleCount: 150,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#ff4d6d', '#ffb3d1', '#ffffff']
-        });
-    }
-
-    mainPhrases.sort(() => Math.random() - 0.5);
     const totalHearts = mainPhrases.length + 1;
     for(let i=0; i < totalHearts; i++) createHeart(i, totalHearts);
 
     document.getElementById('overlay').onclick = function() {
         this.style.display = 'none';
-        if(isFinished) {
-            document.getElementById('final-msg').style.display = 'block';
-            triggerWin();
+        if(isFinished) { 
+            document.getElementById('final-msg').style.display = 'block'; 
+            winSound.play().catch(()=>{});
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         }
     };
 
-    const secretBox = document.getElementById('secret-box');
-    const poemArea = document.getElementById('poem-area');
-    const codeArea = document.getElementById('code-area');
     const codeInput = document.getElementById('code-input');
-    const errorMsg = document.getElementById('error-msg');
     const poemContent = document.getElementById('poem-content');
+
+    // Поддержка нажатия Enter на клавиатуре
+    codeInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') checkCode(); });
 
     document.getElementById('secret-btn').onclick = () => {
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        secretBox.style.display = 'flex';
+        document.getElementById('secret-box').style.display = 'flex';
         document.getElementById('final-msg').style.display = 'none';
         if(codeAccepted) {
-            codeArea.style.display = 'none';
-            poemArea.style.display = 'flex';
+            document.getElementById('code-area').style.display = 'none';
+            document.getElementById('poem-area').style.display = 'flex';
             showFullPoem();
         }
     };
-
-    codeInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') checkCode(); });
 
     function checkCode() {
         if(codeInput.value === '050909') {
             codeAccepted = true;
-            errorMsg.style.display = 'none';
-            codeArea.style.display = 'none';
-            poemArea.style.display = 'flex';
+            document.getElementById('error-msg').style.display = 'none';
+            document.getElementById('code-area').style.display = 'none';
+            document.getElementById('poem-area').style.display = 'flex';
             step = 1;
             typeWriter("умничка!", poemContent);
         } else {
-            errorMsg.style.display = 'block';
+            document.getElementById('error-msg').style.display = 'block';
             codeInput.value = '';
         }
     }
 
-    poemArea.onclick = () => {
+    document.getElementById('poem-area').onclick = () => {
         if(isTyping) return;
-        if(step === 1) {
-            step = 2;
-            typeWriter("этот стих я написал для Тебя и посвящаю Тебе:", poemContent);
-        } else if(step === 2) {
-            step = 3;
-            showFullPoem();
-        }
+        if(step === 1) { step = 2; typeWriter("Этот стих я написал для Тебя и посвящаю Тебе:", poemContent); }
+        else if(step === 2) { step = 3; showFullPoem(); }
     };
 
     function typeWriter(text, element, callback) {
-        let i = 0;
-        element.innerText = "";
-        isTyping = true;
+        let i = 0; element.innerText = ""; isTyping = true;
         function type() {
             if (i < text.length) {
                 element.innerText += text.charAt(i);
-                playTypeSound();
-                i++;
+                playTypeSound(); i++;
                 setTimeout(type, 60);
-            } else {
-                isTyping = false;
-                if(callback) callback();
-            }
+            } else { isTyping = false; if(callback) callback(); }
         }
         type();
     }
@@ -255,8 +239,8 @@
     }
 
     function closeSecret() {
-        secretBox.style.display = 'none';
-        errorMsg.style.display = 'none';
+        document.getElementById('secret-box').style.display = 'none';
+        document.getElementById('error-msg').style.display = 'none';
         if(isFinished) document.getElementById('final-msg').style.display = 'block';
     }
 </script>
