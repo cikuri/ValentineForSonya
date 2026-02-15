@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>для Сонячки!</title>
+    <title>для Монячки!</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
@@ -11,7 +11,6 @@
         body { 
             margin: 0; padding: 0; 
             background-color: #ffe6f0;
-            /* Увеличенный узор точек */
             background-image: radial-gradient(#ffb3d1 15%, transparent 15%);
             background-size: 40px 40px; 
             overflow: hidden; 
@@ -21,9 +20,6 @@
 
         #secret-btn { position: absolute; top: 20px; right: 20px; padding: 10px; background: #ffb3d1; border: 3px solid #ff4d6d; font-size: 8px; color: #330000; cursor: pointer; z-index: 1000; }
         
-        /* Кнопка управления музыкой */
-        #music-toggle { position: absolute; top: 20px; left: 20px; padding: 10px; background: #ffb3d1; border: 3px solid #ff4d6d; font-size: 12px; cursor: pointer; z-index: 1000; line-height: 1; }
-
         .clickable-heart { position: absolute; font-size: 40px; cursor: pointer; z-index: 10; transition: opacity 0.8s ease; user-select: none; line-height: 1; }
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 230, 240, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 2000; padding: 20px; box-sizing: border-box; }
         .note { background: white; padding: 20px; border: 4px solid #ff4d6d; max-width: 90%; font-size: 10px; line-height: 1.8; color: #330000; text-align: center; }
@@ -44,7 +40,6 @@
 </head>
 <body>
 
-<div id="music-toggle">🔊</div>
 <div id="secret-btn">СЕКРЕТ</div>
 
 <div id="overlay">
@@ -59,8 +54,8 @@
         <input type="tel" id="code-input" placeholder="******" maxlength="6">
         <br>
         <div class="btn-group">
-            <button class="action-btn" onclick="checkCode()">ВВЕСТИ</button>
             <button class="action-btn" onclick="closeSecret()">НАЗАД</button>
+            <button class="action-btn" onclick="checkCode()">ВВЕСТИ</button>
         </div>
     </div>
     <div id="poem-area">
@@ -73,31 +68,8 @@
 
 <div class="footer-credit">special for София Мяуковна</div>
 
-<audio id="bg-music" loop>
-    <source src="https://www.chosic.com/wp-content/uploads/2021/04/Rainy-Day-Lofi-Chill-Melody.mp3" type="audio/mpeg">
-</audio>
-
 <script>
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const bgMusic = document.getElementById('bg-music');
-    const musicToggle = document.getElementById('music-toggle');
-    let isMusicPlaying = false;
-
-    function toggleMusic() {
-        if (isMusicPlaying) {
-            bgMusic.pause();
-            musicToggle.innerText = "🔇";
-        } else {
-            bgMusic.play();
-            musicToggle.innerText = "🔊";
-        }
-        isMusicPlaying = !isMusicPlaying;
-    }
-
-    musicToggle.onclick = (e) => {
-        e.stopPropagation();
-        toggleMusic();
-    };
 
     function playSynthSound(freq, type, duration, vol) {
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -157,11 +129,6 @@
         }
 
         h.onclick = () => {
-            // Запуск музыки при первом клике
-            if (!isMusicPlaying && bgMusic.paused) {
-                bgMusic.play();
-                isMusicPlaying = true;
-            }
             if(h.style.opacity === "0") return;
             playHeartSound();
             caughtCount++;
